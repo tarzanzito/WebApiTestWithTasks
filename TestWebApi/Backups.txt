@@ -1,0 +1,150 @@
+﻿
+
+//private static async Task TwoProcessesAsync(int totalTasks)
+//{
+//    //Task task1 = Task.Factory.StartNew(async () =>
+//    //Task task1 = new Task(async () =>
+//    Task task1 = Task.Run(async () => //- REF1
+//    {
+//        for (int i = 0; i < 15; i++)
+//        {
+//            Console.WriteLine("Task 1 INI - iteration {0}", i);
+//            await Task.Delay(5000);  //faz a pausa apenas com  Task.Run
+//            Console.WriteLine("Task 1 END - iteration {0}", i);
+
+//        }
+//        Console.WriteLine("Task 1 complete");
+
+//        //return "task 1: 15";
+//    }
+//       );
+
+//    //Task task2 = Task.Factory.StartNew(async () =>
+//    //Task task2 = new Task(async () =>
+//    Task task2 = Task.Run(async () => //- REF1
+//    {
+//        for (int i = 0; i < 10; i++)
+//        {
+//            Console.WriteLine("Task 2 INI - iteration {0}", i);
+//            // await Task.Delay(2500);  //only make pause with "Task.Run(" - REF1
+//            int j = i;
+//            await Action(j); //faz a pausa 
+
+//            Console.WriteLine("Task 2 END - iteration {0}", i);
+//        }
+
+//        Console.WriteLine("Task 2 complete");
+
+//        //return "task 2: 10";
+//    });
+
+
+//task1.Start();
+//task2.Start();
+
+
+//await Task.WhenAll(task1, task2); //Version1 OK
+
+
+
+//    await task1;                        //Version2 OK, in debug it stays on this line running both tasks at the same time.
+//                                        //if task1 finishes first, it goes to the next await
+//    await task2;                        //Version2 OK
+
+//    Console.WriteLine("Waiting for tasks to complete.");
+
+//}
+
+
+//private static async Task<string> Action(int id)
+//{
+//    string jsonString = "KO";
+
+//    //Console.WriteLine("Action INI:" + id.ToString());
+
+//    //await Task.Delay(5000); //only make pause with "Task.Run(" - REF1
+//    ////await Task.Run(() => { return Task.Delay(5000); });
+
+//    //Console.WriteLine("Action END:" + id.ToString());
+
+
+//    //curl - X 'GET' 'http://localhost:5029/api/Test/GetNow1' -H 'accept: text/plain'
+
+//    var url = $"http://localhost:5029/api/Test/GetNow1";
+//    var parameters = ""; // "?query={query}&apiKey={Consts.SpoonacularKey}&number=5";
+
+//    HttpClient client = new HttpClient();
+//    client.BaseAddress = new Uri(url);
+//    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
+//    //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+//    HttpResponseMessage response = await client.GetAsync(parameters).ConfigureAwait(true);
+
+
+//    if (response.IsSuccessStatusCode)
+//    {
+//        jsonString = await response.Content.ReadAsStringAsync();
+//        //var recipeList = JsonConvert.DeserializeObject<RecipeList>(jsonString);
+
+//        //if (recipeList != null)
+//        //{
+//        //    recipes.AddRange(recipeList.Recipes);
+//        //}
+//    }
+//    else
+//        Console.WriteLine($"Action ERROR:{response.StatusCode}");
+
+//    return jsonString;
+//}
+
+//private static string Action(int id)
+//{
+//    Console.WriteLine($"Action INI:{id}");
+
+//    //await Task.Delay(5000); //only make pause with "Task.Run(" - REF1
+//    ////await Task.Run(() => { return Task.Delay(5000); });
+
+
+
+//    //curl - X 'GET' 'http://localhost:5029/api/Test/GetExample' -H 'accept: text/plain'
+
+//    var url = $"http://localhost:5029/api/Test/GetExample";
+//    var parameters = ""; // "?query={query}&apiKey={Consts.SpoonacularKey}&number=5";
+
+//    HttpClient client = new HttpClient();
+//    client.BaseAddress = new Uri(url);
+//    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
+//    //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+//    //HttpResponseMessage response = await client.GetAsync(parameters).ConfigureAwait(true);
+//    Task<HttpResponseMessage> task = client.GetAsync(parameters);
+//    task.Wait();
+
+//    HttpResponseMessage response = task.Result;
+
+//    string jsonString = "KO";
+//    if (response.IsSuccessStatusCode)
+//    {
+//        Task<string> taskString = response.Content.ReadAsStringAsync();
+//        taskString.Wait();
+
+//        jsonString = taskString.Result;
+
+//        //var recipeList = JsonConvert.DeserializeObject<RecipeList>(jsonString);
+
+//        //if (recipeList != null)
+//        //{
+//        //    recipes.AddRange(recipeList.Recipes);
+//        //}
+//    }
+//    else
+//        Console.WriteLine($"Action ERROR:{response.StatusCode}");
+
+//    Console.WriteLine($"Action END:{id}={jsonString}");
+
+//    //response.Dispose();
+//    //client.Dispose();
+//    //client = null;
+
+//    return jsonString;
+//}
