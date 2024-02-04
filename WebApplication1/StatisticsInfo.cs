@@ -1,10 +1,9 @@
 ﻿using Serilog;
-using System.Collections.Generic;
 
 namespace WebApplication1
 {
     //https://csharpindepth.com/Articles/Singleton
-    public interface IStaticInfo
+    public interface IStatisticsInfo
     {
         int InstancesActives { get; set; }
         int InstancesCount { get; set; }
@@ -12,9 +11,9 @@ namespace WebApplication1
         int MethodsCount { get; set; }
     }
 
-    public class StaticInfo : IStaticInfo
+    public class StatisticsInfo : IStatisticsInfo
     {
-        private static readonly object _padlock = new object();
+        //private static readonly object _padlock = new();
 
         private int _instancesCount = 0;
         private int _instancesActives = 0;
@@ -97,9 +96,9 @@ namespace WebApplication1
             }
         }
 
-        public StaticInfo()
+        public StatisticsInfo()
         {
-            Log.Information($"New StaticInfo");
+            Log.Information($"New StatisticsInfo");
         }
     }
 }

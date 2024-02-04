@@ -8,35 +8,36 @@ namespace WebApplication1.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TestController : ControllerBase
+    public class TestAlfaController : ControllerBase
     {
-        private readonly ILogger<TestController> _logger;
-        private readonly IStaticInfo _staticInfo;
+        private readonly ILogger<TestAlfaController> _logger;
+        private readonly IStatisticsInfo _statisticsInfo;
 
-        private static readonly object _padlock = new object();
+        private static readonly object _padlock = new();
 
-        public TestController(ILogger<TestController> logger, IStaticInfo staticInfo)
+        public TestAlfaController(ILogger<TestAlfaController> logger, IStatisticsInfo statisticsInfo)
         {
-            _logger = logger; //this is not serilog !!!
-            _staticInfo = staticInfo;
+            _logger = logger; //this is NOT serilog !!! is "Microsoft.Extensions.Logging.Logger"
+
+            _statisticsInfo = statisticsInfo;
 
             lock (_padlock)
             {
-                _staticInfo.InstancesCount++;
-                _staticInfo.InstancesActives++;
+                _statisticsInfo.InstancesCount++;
+                _statisticsInfo.InstancesActives++;
             }
 
-            LogWrite($"Constructor: Total:{_staticInfo.InstancesCount} Active:{_staticInfo.InstancesActives}");
+            LogWrite($"New {nameof(TestAlfaController)}: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
         }
 
-        ~TestController()
+        ~TestAlfaController()
         {
             lock (_padlock)
             {
-                _staticInfo.InstancesActives--;
+                _statisticsInfo.InstancesActives--;
             }
 
-            LogWrite($"DEStructor: Total:{_staticInfo.InstancesCount} Active:{_staticInfo.InstancesActives}");
+            LogWrite($"DEStructor: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
         }
 
         [HttpGet(template: "GetExample")]
@@ -44,8 +45,8 @@ namespace WebApplication1.Controllers
         {
             lock (_padlock)
             {
-                _staticInfo.MethodActives++;
-                _staticInfo.MethodsCount++;
+                _statisticsInfo.MethodActives++;
+                _statisticsInfo.MethodsCount++;
             }
 
             string now1 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
@@ -58,8 +59,8 @@ namespace WebApplication1.Controllers
 
             lock (_padlock)
             {
-                msg = $"Started:{now1}, Ended:{now2} = Total Instances: {_staticInfo.InstancesCount}, Active Instances: {_staticInfo.InstancesActives}, MethodsCount: {_staticInfo.MethodsCount}, MethodActives:{_staticInfo.MethodActives}";
-                _staticInfo.MethodActives--;
+                msg = $"Started:{now1}, Ended:{now2} = Total Instances: {_statisticsInfo.InstancesCount}, Active Instances: {_statisticsInfo.InstancesActives}, MethodsCount: {_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}";
+                _statisticsInfo.MethodActives--;
             }
 
             LogWrite($"GetExample: {msg}");
@@ -72,11 +73,12 @@ namespace WebApplication1.Controllers
             return msg;
         }
 
-        private static void LogWrite(string msg)
+        private void LogWrite(string msg)
         {
             //lock (_padlock)
             {
-                Log.Information(msg);
+                _logger.Log(LogLevel.Information, msg); //injected log
+                Log.Information(msg); //Serilog
             }
         }
 
@@ -95,12 +97,12 @@ namespace WebApplication1.Controllers
 //Mutex mutex = new Mutex();
 //if (mutex.WaitOne(5000)) //espera 5 segundos se nao acabar em 5 segundo sai por false
 //{
-//    //....
+//   
 //    try { }
+//          ....
 //    catch { }
 //    finally { mutex.ReleaseMutex(); }
 //}
 //else
 //    Console.WriteLine("Mutex has not been released in 5 seconds");
-
 //}
