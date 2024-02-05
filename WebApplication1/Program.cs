@@ -8,8 +8,11 @@ namespace WebApplication1
     {
         public static void Main(string[] args)
         {
+            if (File.Exists("App.log"))
+                File.Delete("App.log");
+
             using var log = new LoggerConfiguration()
-                .WriteTo.File("App.log", restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
+                .WriteTo.File("App.log")// , restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
             //.WriteTo.Console()
             .CreateLogger();
             Log.Logger = log;

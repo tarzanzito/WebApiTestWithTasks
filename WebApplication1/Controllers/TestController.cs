@@ -8,14 +8,14 @@ namespace WebApplication1.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TestAlfaController : ControllerBase
+    public class TestController : ControllerBase
     {
-        private readonly ILogger<TestAlfaController> _logger;
+        private readonly ILogger<TestController> _logger;
         private readonly IStatisticsInfo _statisticsInfo;
 
         private static readonly object _padlock = new();
 
-        public TestAlfaController(ILogger<TestAlfaController> logger, IStatisticsInfo statisticsInfo)
+        public TestController(ILogger<TestController> logger, IStatisticsInfo statisticsInfo)
         {
             _logger = logger; //this is NOT serilog !!! is "Microsoft.Extensions.Logging.Logger"
 
@@ -27,10 +27,10 @@ namespace WebApplication1.Controllers
                 _statisticsInfo.InstancesActives++;
             }
 
-            LogWrite($"New {nameof(TestAlfaController)}: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
+            LogWrite($"New {nameof(TestController)}: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
         }
 
-        ~TestAlfaController()
+        ~TestController()
         {
             lock (_padlock)
             {

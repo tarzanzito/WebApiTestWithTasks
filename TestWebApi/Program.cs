@@ -1,82 +1,164 @@
 ﻿using Serilog;
+using Serilog.Events;
 using System;
 using System.Net.Http.Headers;
-using System.Text;
 
 namespace TestWebApi
 {
-
-//Visual Studio - run multi programs
-//select solution
-//right click -> Properties
-//Common Properties / Startup Projects
-//select multiple and select projects
+    //Visual Studio - run multi programs
+    //select solution
+    //right click -> Properties
+    //Common Properties / Startup Projects
+    //select projects to start at same time
 
     internal class Program
     {
         public static void Main()
         //public static async Task Main()
         {
-            Console.WriteLine("App Started....Press enter");
-            Console.WriteLine("============================");
+            if (File.Exists("TestWebApi.log"))
+                File.Delete("TestWebApi.log");
+
+            using var log = new LoggerConfiguration()
+                .WriteTo.File("TestWebApi.log")//, restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
+                .WriteTo.Console()
+                .CreateLogger();
+            
+            Log.Logger = log;
+
+
+            LogWrite($"App Started....Press enter");
+            LogWrite($"============================");
 
             Console.ReadKey();
 
-            int totalTasks = 25;// 25;
-            int totalLoops = 10; // 10;
+
+            int totalLoops = 10;
+            int totalTasks = 25;
 
 
-            for (int i = 0; i < totalLoops; i++)
-            {
-                Console.WriteLine("Loop Start:" + i.ToString());
-                Console.WriteLine("============================");
+            Task task = ProcessAsync(totalLoops, totalTasks);
+            task.Wait();
 
-                StartTaskArrayAsync(totalTasks); //run at same time
-                //await StartTaskArrayAsync(totalTasks);
-
-                Console.WriteLine("============================");
-                Console.WriteLine("Loop End:" + i.ToString());
-            }
-
-
-            Console.WriteLine("============================");
-            Console.WriteLine("App Finished....Press enter");
+            LogWrite($"============================");
+            LogWrite($"App Finished....Press enter");
             Console.ReadKey();
         }
 
-
-
-        //private static async Task StartTaskArrayAsync(int totalTasks)
-        private static void StartTaskArrayAsync(int totalTasks)
+        private static async Task ProcessAsync(int totalLoops, int totalTasks)
         {
+            LogWrite($"All Tasks Started.");
+            DateTime dtt1 = DateTime.Now;
+
+
+            //task1 - It is just to demonstrate that the tasks are being performed at the same time!!!
+            Task task1 = Task.Run(async () => //- REF1
+            {
+                LogWrite("Task Counter Started...");
+                DateTime dtm1 = DateTime.Now;
+
+                for (int i = 0; i < 20; i++)
+                {
+                    DateTime dt1 = DateTime.Now;
+
+                    await Task.Delay(5000);  //faz a pausa apenas com  Task.Run
+                    
+                    DateTime dt2 = DateTime.Now;
+                    TimeSpan ts = dt1.Subtract(dt2);
+                    LogWrite($"Task Counter={i},  Duration={ts}"); 
+
+                }
+
+                DateTime dtm2 = DateTime.Now;
+                TimeSpan tsm = dtm1.Subtract(dtm2);
+                LogWrite($"Task Counter Complete,  Duration={tsm}");
+            });
+
+
+            //task2
+            Task task2 = Task.Run(async () => //- REF1
+            {
+                LogWrite($"Task Loops API Started...");
+                DateTime dtm1 = DateTime.Now;
+
+                for (int i = 0; i < totalLoops; i++)
+                {
+                    LogWrite($"Loop Start: {i} of {totalLoops}");
+                    DateTime dt1 = DateTime.Now;
+
+                    //await Task.Delay(2000);  //faz a pausa apenas com  Task.Run
+                    await StartTaskArrayAsync(totalTasks, totalLoops, i);
+
+                    DateTime dt2 = DateTime.Now;
+                    TimeSpan ts = dt1.Subtract(dt2);
+                    LogWrite($"Task API={i},  Duration={ts}");
+
+                    // LogWrite("============================");
+                    LogWrite($"Loop End: {i} of {totalLoops}");
+                }
+
+                DateTime dtm2 = DateTime.Now;
+                TimeSpan tsm = dtm1.Subtract(dtm2);
+                LogWrite($"Task Loops API complete,  Duration={tsm}");
+            });
+
+
+            LogWrite($"Wait for All Tasks to complete.");
+
+            await Task.WhenAll(task1, task2); //Version1 OK
+            //or
+            //await task1;
+            //await task2;
+
+
+
+            DateTime dtt2 = DateTime.Now;
+            TimeSpan tst = dtt1.Subtract(dtt2);
+            LogWrite($"All Tasks Completed. Duration={tst}");
+        }
+
+
+        private static async Task StartTaskArrayAsync(int totalTasks, int totalLoops, int currentLoop)
+        {
+            LogWrite($"Task Array Started with {totalTasks} elements. Loop={currentLoop} of {totalLoops}");
+            DateTime dtt1 = DateTime.Now;
+
             Task[] tasks = new Task[totalTasks];
 
             for (int i = 0; i < totalTasks; i++)
             {
-                int j = i; //C# lambdas capture a reference to the variable, not the value of the variable.
-                //tasks[i] = new Task(async () => await Action(j) );
-                tasks[i] = new Task(() => Action(j));
+                int j = i; //NOTE: C# lambdas capture a reference to the variable, not the value of the variable.
+                int k = i + (totalLoops * currentLoop);
+                //tasks[i] = new Task(async () => await Action(j, k) );
+                tasks[i] = new Task(() => ActionCallApi(j, k));
             }
 
             foreach (Task task in tasks)
                 task.Start();
 
-            Task.WaitAll(tasks);
+            //Task.WaitAll(tasks);
+            await Task.WhenAll(tasks);
 
             //await Task.WhenAll(tasks);
             //await tasks;
             //Task aa = Task.WhenAll(tasks);
             //await aa;
+
+            DateTime dtt2 = DateTime.Now;
+            TimeSpan tst = dtt1.Subtract(dtt2);
+            LogWrite($"Task Array Completed, Duration={tst}, Loop={currentLoop} of {totalLoops}");
         }
-    
 
-        private static string Action(int id)
+
+        private static string ActionCallApi(int id, int total)
         {
+            LogWrite($"ActionCallApi Started, id={id} of {total}.");
+            DateTime dtt1 = DateTime.Now;
+
+
             //curl - X 'GET' 'http://localhost:5029/api/Test/GetExample' -H 'accept: text/plain'
-
-            Console.WriteLine($"Action INI:{id}");
-
             var url = $"http://localhost:5029/api/Test/GetExample";
+                      
             var parameters = ""; // "?query={query}&apiKey={Consts.SpoonacularKey}&number=5";
 
 
@@ -86,9 +168,9 @@ namespace TestWebApi
             //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             //HttpResponseMessage response = await client.GetAsync(parameters).ConfigureAwait(true);
-            Task< HttpResponseMessage> task = client.GetAsync(parameters);
+            Task<HttpResponseMessage> task = client.GetAsync(parameters);
             task.Wait();
-            
+
             HttpResponseMessage response = task.Result;
 
             string jsonString = "KO";
@@ -106,15 +188,24 @@ namespace TestWebApi
                 //}
             }
             else
-                Console.WriteLine($"Action ERROR:{response.StatusCode}");
+                LogWrite($"ActionCallApi ERROR, id={id} :{response.StatusCode}");
 
-            Console.WriteLine($"Action END:{id}={jsonString}");
-            
+            //LogWrite($"Action Return data={jsonString}");
+
+            DateTime dtt2 = DateTime.Now;
+            TimeSpan tst = dtt1.Subtract(dtt2);
+            LogWrite($"ActionCallApi Completed, id={id} of {total}, Duration={tst}");
+
             //response.Dispose();
             //client.Dispose();
             //client = null;
 
             return jsonString;
+        }
+
+        private static void LogWrite(string msg)
+        {
+            Log.Information(msg); //Serilog
         }
     }
 }
