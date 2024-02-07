@@ -1,7 +1,4 @@
-﻿using Serilog;
-using System;
-using System.Net.Http.Headers;
-
+﻿
 namespace TestWebApi
 {
     internal class ProgramSimple

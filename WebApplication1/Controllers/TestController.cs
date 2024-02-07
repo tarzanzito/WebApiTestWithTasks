@@ -14,7 +14,7 @@ namespace WebApplication1.Controllers
         private readonly IStatisticsInfo _statisticsInfo;
 
         private static readonly object _padlock = new();
-
+        private static readonly Random rnd = new();
         public TestController(ILogger<TestController> logger, IStatisticsInfo statisticsInfo)
         {
             _logger = logger; //this is NOT serilog !!! is "Microsoft.Extensions.Logging.Logger"
@@ -40,8 +40,11 @@ namespace WebApplication1.Controllers
             LogWrite($"DEStructor: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
         }
 
+
+
         [HttpGet(template: "GetExample")]
-        public async Task<string> GetExampleAsync() //IActionResult 
+        //public async Task<string> GetExampleAsync() //only return 200 OK
+        public async Task<ActionResult<string>> GetExampleAsync() //https://code-maze.com/aspnetcore-web-api-return-types/
         {
             lock (_padlock)
             {
@@ -51,7 +54,8 @@ namespace WebApplication1.Controllers
 
             string now1 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
 
-            await Task.Delay(5000); //operation
+            int delay = rnd.Next(1, 10) * 1000;
+            await Task.Delay(delay); //operation
 
             string now2 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
 
@@ -59,7 +63,7 @@ namespace WebApplication1.Controllers
 
             lock (_padlock)
             {
-                msg = $"Started:{now1}, Ended:{now2} = Total Instances: {_statisticsInfo.InstancesCount}, Active Instances: {_statisticsInfo.InstancesActives}, MethodsCount: {_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}";
+                msg = $"Started:{now1}, Ended:{now2}, delay:{delay}, TotalInstances:{_statisticsInfo.InstancesCount}, ActiveInstances:{_statisticsInfo.InstancesActives}, MethodsCount:{_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}";
                 _statisticsInfo.MethodActives--;
             }
 
@@ -70,21 +74,23 @@ namespace WebApplication1.Controllers
             System.GC.Collect();
             System.GC.WaitForPendingFinalizers();
 
-            return msg;
+
+            return msg; //if return is an ActionResult<string>
+            //return Ok(msg);//if return is an IActionResult
+            //return BadRequest("Name should be between 3 and 30 characters.");
         }
 
-        private void LogWrite(string msg)
+        private static void LogWrite(string msg)
         {
-            //lock (_padlock)
-            {
-                _logger.Log(LogLevel.Information, msg); //injected log
-                Log.Information(msg); //Serilog
-            }
+            Log.Information(msg);
         }
-
     }
 }
 
+//lock (_padlock)
+//{ }
+
+//OR
 
 // Mutex mutex = new Mutex();
 //if (mutex.WaitOne())

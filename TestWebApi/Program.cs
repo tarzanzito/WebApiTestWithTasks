@@ -1,6 +1,5 @@
 ﻿using Serilog;
-using Serilog.Events;
-using System;
+using Serilog.Core;
 using System.Net.Http.Headers;
 
 namespace TestWebApi
@@ -16,29 +15,22 @@ namespace TestWebApi
         public static void Main()
         //public static async Task Main()
         {
-            if (File.Exists("TestWebApi.log"))
-                File.Delete("TestWebApi.log");
-
-            using var log = new LoggerConfiguration()
-                .WriteTo.File("TestWebApi.log")//, restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
-                .WriteTo.Console()
-                .CreateLogger();
-            
-            Log.Logger = log;
-
+            Log.Logger = ConfigSerilog("TestWebApi.log");
 
             LogWrite($"App Started....Press enter");
             LogWrite($"============================");
 
             Console.ReadKey();
 
+            // Process - INI
 
             int totalLoops = 10;
             int totalTasks = 25;
 
-
             Task task = ProcessAsync(totalLoops, totalTasks);
             task.Wait();
+
+            // Process - END
 
             LogWrite($"============================");
             LogWrite($"App Finished....Press enter");
@@ -52,7 +44,7 @@ namespace TestWebApi
 
 
             //task1 - It is just to demonstrate that the tasks are being performed at the same time!!!
-            Task task1 = Task.Run(async () => //- REF1
+            Task task1 = Task.Run(async () =>
             {
                 LogWrite("Task Counter Started...");
                 DateTime dtm1 = DateTime.Now;
@@ -61,8 +53,8 @@ namespace TestWebApi
                 {
                     DateTime dt1 = DateTime.Now;
 
-                    await Task.Delay(5000);  //faz a pausa apenas com  Task.Run
-                    
+                    await Task.Delay(5000);  //note: Why do you pause just with 'Task.Run' ?
+
                     DateTime dt2 = DateTime.Now;
                     TimeSpan ts = dt1.Subtract(dt2);
                     LogWrite($"Task Counter={i},  Duration={ts}"); 
@@ -76,7 +68,7 @@ namespace TestWebApi
 
 
             //task2
-            Task task2 = Task.Run(async () => //- REF1
+            Task task2 = Task.Run(async () => 
             {
                 LogWrite($"Task Loops API Started...");
                 DateTime dtm1 = DateTime.Now;
@@ -86,15 +78,12 @@ namespace TestWebApi
                     LogWrite($"Loop Start: {i} of {totalLoops}");
                     DateTime dt1 = DateTime.Now;
 
-                    //await Task.Delay(2000);  //faz a pausa apenas com  Task.Run
+                    //await Task.Delay(2000);  //note: Why do you pause just with 'Task.Run' ?
                     await StartTaskArrayAsync(totalTasks, totalLoops, i);
 
                     DateTime dt2 = DateTime.Now;
                     TimeSpan ts = dt1.Subtract(dt2);
                     LogWrite($"Task API={i},  Duration={ts}");
-
-                    // LogWrite("============================");
-                    LogWrite($"Loop End: {i} of {totalLoops}");
                 }
 
                 DateTime dtm2 = DateTime.Now;
@@ -139,17 +128,12 @@ namespace TestWebApi
             //Task.WaitAll(tasks);
             await Task.WhenAll(tasks);
 
-            //await Task.WhenAll(tasks);
-            //await tasks;
-            //Task aa = Task.WhenAll(tasks);
-            //await aa;
 
             DateTime dtt2 = DateTime.Now;
             TimeSpan tst = dtt1.Subtract(dtt2);
             LogWrite($"Task Array Completed, Duration={tst}, Loop={currentLoop} of {totalLoops}");
         }
-
-
+        
         private static string ActionCallApi(int id, int total)
         {
             LogWrite($"ActionCallApi Started, id={id} of {total}.");
@@ -201,6 +185,29 @@ namespace TestWebApi
             //client = null;
 
             return jsonString;
+        }
+
+        private static Logger ConfigSerilog(string fileName)
+        {
+            //Read from "appsettings.json"
+            //Package; Serilog.Settings.Configuration  
+            //var configuration = new ConfigurationBuilder() //REF2
+            //    .AddJsonFile("appsettings.json")
+            //    .Build();
+
+
+            if (File.Exists(fileName))
+                File.Delete(fileName);
+
+            Logger log = new LoggerConfiguration()
+                //.ReadFrom.Configuration(configuration) //REF2
+
+                //.WriteTo.File(fileName)// , restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
+                .WriteTo.File(fileName, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
+
+            return log;
         }
 
         private static void LogWrite(string msg)

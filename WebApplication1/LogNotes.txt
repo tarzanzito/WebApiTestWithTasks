@@ -1,0 +1,52 @@
+﻿            ////for (int i = collection.Count - 1; i >= 0; i--)
+            //foreach (var service in builder.Services)
+            //{
+            //    ServiceDescriptor? descriptor = service;
+            //    if (descriptor.ServiceType == typeof(ILoggerProvider) && descriptor.ServiceKey == null)
+            //    {
+            //        string aa = service.ServiceType.FullName;
+            //        string ab = service.Lifetime.ToString();
+            //        string ac = service.ImplementationType?.FullName;
+            //        string ad = "";
+            //    }
+            //}
+
+//==============================================================
+
+
+builder.Logging.ClearProviders();  WITH
+builder.Logging.AddConsole();      WITH
+----------------------------------------
+
+//[23:45:40 INF] Program Started...
+
+//info: Microsoft.Hosting.Lifetime[14]
+//      Now listening on: http://localhost:5029
+//info: Microsoft.Hosting.Lifetime[0]
+//      Application started. Press Ctrl+C to shut down.
+//info: Microsoft.Hosting.Lifetime[0]
+//      Hosting environment: Development
+//info: Microsoft.Hosting.Lifetime[0]
+//      Content root path: E:\_MEGA_DRIVE\__GitHub\__Synchronized\C_Sharp\WebApiTestWithTasks\WebApplication1
+
+//warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+//      Failed to determine the https port for redirect.
+
+//[23:46:58 INF] New StatisticsInfo
+//[23:46:58 INF] New TestController: Total: 1 Active: 1
+//[23:47:05 INF] GetExample: Started: 2024 / 02 / 58 11:46:58:034, Ended: 2024 / 02 / 05 11:47:05:049, delay: 7000, TotalInstances: 1, ActiveInstances: 1, MethodsCount: 1, MethodActives: 1
+
+
+//==============================================================
+
+
+builder.Logging.ClearProviders();  WITH
+builder.Logging.AddConsole();      WITHOUT
+------------------------------------------
+
+//[23:45:40 INF] Program Started...
+
+//[23:46:58 INF] New StatisticsInfo
+//[23:46:58 INF] New TestController: Total: 1 Active: 1
+//[23:47:05 INF] GetExample: Started: 2024 / 02 / 58 11:46:58:034, Ended: 2024 / 02 / 05 11:47:05:049, delay: 7000, TotalInstances: 1, ActiveInstances: 1, MethodsCount: 1, MethodActives: 1
+
