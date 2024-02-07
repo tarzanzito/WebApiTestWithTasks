@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using System;
+using System.Threading.Tasks;
 
 //for versions read
 //https://briancaos.wordpress.com/2022/10/14/c-net-swagger-api-versioning-show-versions-in-your-swagger-page/
@@ -10,14 +13,16 @@ namespace WebApplication1.Controllers
     [Route("api/[controller]")]
     public class TestController : ControllerBase
     {
-        private readonly ILogger<TestController> _logger;
+        //private readonly ILogger<TestController> _logger;
         private readonly IStatisticsInfo _statisticsInfo;
 
         private static readonly object _padlock = new();
         private static readonly Random rnd = new();
-        public TestController(ILogger<TestController> logger, IStatisticsInfo statisticsInfo)
+
+        //public TestController(ILogger<TestController> logger, IStatisticsInfo statisticsInfo)
+        public TestController(IStatisticsInfo statisticsInfo)
         {
-            _logger = logger; //this is NOT serilog !!! is "Microsoft.Extensions.Logging.Logger"
+            //_logger = logger; //this is NOT serilog !!! is "Microsoft.Extensions.Logging.Logger"
 
             _statisticsInfo = statisticsInfo;
 
@@ -54,16 +59,18 @@ namespace WebApplication1.Controllers
 
             string now1 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
 
+
             int delay = rnd.Next(1, 10) * 1000;
             await Task.Delay(delay); //operation
 
+
             string now2 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
 
-            string msg = "";
+            string msg = $"Started:{now1}, Ended:{now2}, delay:{delay}, TotalInstances:{_statisticsInfo.InstancesCount}, ActiveInstances:{_statisticsInfo.InstancesActives}, MethodsCount:{_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}"; ;
 
             lock (_padlock)
             {
-                msg = $"Started:{now1}, Ended:{now2}, delay:{delay}, TotalInstances:{_statisticsInfo.InstancesCount}, ActiveInstances:{_statisticsInfo.InstancesActives}, MethodsCount:{_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}";
+                //msg = $"Started:{now1}, Ended:{now2}, delay:{delay}, TotalInstances:{_statisticsInfo.InstancesCount}, ActiveInstances:{_statisticsInfo.InstancesActives}, MethodsCount:{_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}";
                 _statisticsInfo.MethodActives--;
             }
 
