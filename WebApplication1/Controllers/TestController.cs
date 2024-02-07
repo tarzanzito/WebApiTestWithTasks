@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 //for versions read
@@ -13,17 +15,13 @@ namespace WebApplication1.Controllers
     [Route("api/[controller]")]
     public class TestController : ControllerBase
     {
-        //private readonly ILogger<TestController> _logger;
         private readonly IStatisticsInfo _statisticsInfo;
 
         private static readonly object _padlock = new();
         private static readonly Random rnd = new();
 
-        //public TestController(ILogger<TestController> logger, IStatisticsInfo statisticsInfo)
         public TestController(IStatisticsInfo statisticsInfo)
         {
-            //_logger = logger; //this is NOT serilog !!! is "Microsoft.Extensions.Logging.Logger"
-
             _statisticsInfo = statisticsInfo;
 
             lock (_padlock)
@@ -32,7 +30,7 @@ namespace WebApplication1.Controllers
                 _statisticsInfo.InstancesActives++;
             }
 
-            LogWrite($"New {nameof(TestController)}: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
+            LogWrite("New {0): Total:{1} Active:{2}", nameof(TestController), _statisticsInfo.InstancesCount, _statisticsInfo.InstancesActives);
         }
 
         ~TestController()
@@ -42,12 +40,12 @@ namespace WebApplication1.Controllers
                 _statisticsInfo.InstancesActives--;
             }
 
-            LogWrite($"DEStructor: Total:{_statisticsInfo.InstancesCount} Active:{_statisticsInfo.InstancesActives}");
+            LogWrite("DEStructor {0): Total:{1} Active:{2}", nameof(TestController), _statisticsInfo.InstancesCount, _statisticsInfo.InstancesActives);
         }
 
 
-
         [HttpGet(template: "GetExample")]
+        //public string GetExampleAsync() //only return 200 OK
         //public async Task<string> GetExampleAsync() //only return 200 OK
         public async Task<ActionResult<string>> GetExampleAsync() //https://code-maze.com/aspnetcore-web-api-return-types/
         {
@@ -57,40 +55,60 @@ namespace WebApplication1.Controllers
                 _statisticsInfo.MethodsCount++;
             }
 
-            string now1 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
+            DateTime dt1 = DateTime.UtcNow;
+            string now1 = dt1.ToString("yyy/MM/ss hh:mm:ss:fff");
 
 
             int delay = rnd.Next(1, 10) * 1000;
             await Task.Delay(delay); //operation
 
 
-            string now2 = DateTime.UtcNow.ToString("yyy/MM/ss hh:mm:ss:fff");
+            DateTime dt2 = DateTime.UtcNow;
+            string now2 = dt2.ToString("yyy/MM/ss hh:mm:ss:fff");
+            string timeSpan = (dt2 - dt1).ToString();
 
-            string msg = $"Started:{now1}, Ended:{now2}, delay:{delay}, TotalInstances:{_statisticsInfo.InstancesCount}, ActiveInstances:{_statisticsInfo.InstancesActives}, MethodsCount:{_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}"; ;
+            var resp = new
+            {
+                GetExample = "GetExample",
+                Started = now1,
+                Ended = now2,
+                TimeSpan = timeSpan,
+                Delay = delay,
+                TotalInstances = _statisticsInfo.InstancesCount,
+                ActiveInstances = _statisticsInfo.InstancesActives,
+                MethodsCount = _statisticsInfo.MethodsCount,
+                MethodActives = _statisticsInfo.MethodActives
+            };
+
+            LogWrite("GetExample: Started:{0}, Ended:{1}, TimeSpan:{2}, Delay:{3}, TotalInstances:{4}, ActiveInstances:{5}, MethodsCount:{6}, MethodActives:{7}",
+                 now1, now2, timeSpan, delay, _statisticsInfo.InstancesCount, _statisticsInfo.InstancesActives, _statisticsInfo.MethodsCount, _statisticsInfo.MethodActives);
 
             lock (_padlock)
             {
-                //msg = $"Started:{now1}, Ended:{now2}, delay:{delay}, TotalInstances:{_statisticsInfo.InstancesCount}, ActiveInstances:{_statisticsInfo.InstancesActives}, MethodsCount:{_statisticsInfo.MethodsCount}, MethodActives:{_statisticsInfo.MethodActives}";
                 _statisticsInfo.MethodActives--;
             }
-
-            LogWrite($"GetExample: {msg}");
-
 
             //Is good or bad ?!?!??!
             System.GC.Collect();
             System.GC.WaitForPendingFinalizers();
 
-
-            return msg; //if return is an ActionResult<string>
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            return JsonSerializer.Serialize(resp, options);
+            //return msg; //if return is an ActionResult<string>
             //return Ok(msg);//if return is an IActionResult
             //return BadRequest("Name should be between 3 and 30 characters.");
         }
 
-        private static void LogWrite(string msg)
+        private static void LogWrite(Serilog.Events.LogEventLevel logLevel, string msg, params object?[] args)
         {
-            Log.Information(msg);
+            Log.Write(logLevel, msg, args);
         }
+
+        private static void LogWrite(string msg, params object?[] args)
+        {
+            LogWrite(Serilog.Events.LogEventLevel.Information, msg, args);
+        }
+
     }
 }
 
