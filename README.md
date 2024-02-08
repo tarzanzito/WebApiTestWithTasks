@@ -1,2 +1,3 @@
 # WebApiTestWithTasks
-Test WebApi using ConsoleApp With Tasks
+Test WebApi using ConsoleApp With Tasks using Serilog
+
