@@ -193,7 +193,7 @@ namespace TestWebApi
 
         private static Logger ConfigSerilog(string fileName)
         {
-            //Read from "appsettings.json"
+            //To read from "appsettings.json"
             //Package; Serilog.Settings.Configuration  
             //var configuration = new ConfigurationBuilder() //REF2
             //    .AddJsonFile("appsettings.json")
@@ -205,7 +205,7 @@ namespace TestWebApi
 
             Logger log = new LoggerConfiguration()
                 //.ReadFrom.Configuration(configuration) //REF2
-
+                //else
                 //.WriteTo.File(fileName)// , restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
                 .WriteTo.File(fileName, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")

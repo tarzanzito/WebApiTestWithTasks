@@ -62,13 +62,14 @@ namespace WebApplication1
 
         private static void AppRun(WebApplication app)
         {
-            ////REF1: if using the "builder.Logging.AddConsole();" 
+            //REF1: if using the "builder.Logging.AddConsole();" 
             //is only need "app.Run();"
             //             "return;"
 
             app.Start();
 
-            //This information is only available after "app.Start();" 
+            //Next information is automatic send to console only when using 'builder.Logging.AddConsole();'
+            //Next information is only available after "app.Start();" 
             string listenIn = "";
             var server = app.Services.GetRequiredService<IServer>();
             var addressFeature = server.Features.Get<IServerAddressesFeature>();
@@ -84,12 +85,13 @@ namespace WebApplication1
             Log.Warning($"Hosting environment: {app.Environment.EnvironmentName}");
             Log.Warning($"Content root path: {app.Environment.ContentRootPath}");
 
+
             app.WaitForShutdown();
         }
 
         private static Logger ConfigSerilog(string fileName)
         {
-            //Read from "appsettings.json"
+            //To read from "appsettings.json"
             //Package; Serilog.Settings.Configuration  
             //var configuration = new ConfigurationBuilder() //REF2
             //    .AddJsonFile("appsettings.json")
@@ -101,7 +103,7 @@ namespace WebApplication1
 
             Logger log = new LoggerConfiguration()
                 //.ReadFrom.Configuration(configuration) //REF2
-
+                //else
                 //.WriteTo.File(fileName)// , restrictedToMinimumLevel: LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
                 .WriteTo.File(fileName, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")

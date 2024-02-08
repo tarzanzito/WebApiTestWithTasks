@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -45,7 +43,7 @@ namespace WebApplication1.Controllers
 
 
         [HttpGet(template: "GetExample")]
-        //public string GetExampleAsync() //only return 200 OK
+        //public string GetExampleAsync()             //only return 200 OK
         //public async Task<string> GetExampleAsync() //only return 200 OK
         public async Task<ActionResult<string>> GetExampleAsync() //https://code-maze.com/aspnetcore-web-api-return-types/
         {
